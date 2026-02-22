@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 我的待办事项</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: system-ui, sans-serif; }
+        .task-done { text-decoration: line-through; opacity: 0.6; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen py-12">
+    <div class="max-w-md mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- 头部 -->
+        <div class="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-8 text-center">
+            <h1 class="text-3xl font-bold">我的待办清单</h1>
+            <p class="mt-2 opacity-90">今天也要加油哦！</p>
+        </div>
+
+        <!-- 输入区 -->
+        <div class="p-6">
+            <div class="flex gap-2">
+                <input 
+                    id="taskInput" 
+                    type="text" 
+                    placeholder="输入新任务..." 
+                    class="flex-1 border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500"
+                    onkeypress="if(event.key === 'Enter') addTask()">
+                <button 
+                    onclick="addTask()" 
+                    class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl font-medium transition">
+                    添加
+                </button>
+            </div>
+        </div>
+
+        <!-- 任务列表 -->
+        <div class="px-6 pb-6">
+            <ul id="taskList" class="space-y-2 min-h-[200px]"></ul>
+        </div>
+
+        <!-- 底部统计 -->
+        <div id="footer" class="px-6 py-4 bg-gray-50 border-t text-sm text-gray-500 flex justify-between items-center">
+            <span>共 <span id="total" class="font-medium">0</span> 项</span>
+            <button onclick="clearCompleted()" class="text-red-500 hover:text-red-600 text-sm font-medium">清除已完成</button>
+        </div>
+    </div>
+
+    <script>
+        // 加载任务
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            const list = document.getElementById('taskList');
+            list.innerHTML = '';
+            
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = `flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-xl group ${task.done ? 'task-done' : ''}`;
+                li.innerHTML = `
+                    <input type="checkbox" ${task.done ? 'checked' : ''} 
+                           class="w-5 h-5 accent-purple-600" 
+                           onchange="toggleDone(${index})">
+                    <span class="flex-1 text-gray-700">${task.text}</span>
+                    <button onclick="deleteTask(${index})" 
+                            class="text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition">
+                        删除
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+
+            document.getElementById('total').textContent = tasks.length;
+        }
+
+        // 添加任务
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.push({ text, done: false });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            
+            input.value = '';
+            loadTasks();
+        }
+
+        // 切换完成状态
+        function toggleDone(index) {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks[index].done = !tasks[index].done;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        // 删除任务
+        function deleteTask(index) {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.splice(index, 1);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        // 清除已完成
+        function clearCompleted() {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks = tasks.filter(t => !t.done);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            loadTasks();
+        }
+
+        // 页面加载时自动显示任务
+        window.onload = loadTasks;
+    </script>
+</body>
+</html>
